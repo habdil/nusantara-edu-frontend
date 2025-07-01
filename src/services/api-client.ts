@@ -1,5 +1,7 @@
+// src\services\api-client.ts
+
 import API_CONFIG, { getEnvironmentConfig } from "@/config/api.config"
-import type { ApiResponse, ApiRequestConfig } from "../types/api/auth.types"
+import type { ApiResponse, ApiRequestConfig } from "../types/auth.types"
 
 interface PaginatedResponse<T> {
   data: T[]

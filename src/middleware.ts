@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UserRoles } from './types/api/auth.types';
+import { UserRoles } from './types/auth.types';
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = [

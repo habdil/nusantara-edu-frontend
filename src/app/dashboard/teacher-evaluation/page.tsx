@@ -1,9 +1,9 @@
-import React from 'react';
+import { TeacherEvaluationDashboard } from "../../../components/teacher-evaluation/TeacherEvaluationDashboard"
 
-export default function TeacherEvaluationPage() {
-    return (
-        <main>
-            <h1>Teacher Evaluation</h1>
-        </main>
-    );
+export default function Page() {
+  return (
+    <main className="container mx-auto p-4">
+      <TeacherEvaluationDashboard />
+    </main>
+  )
 }

@@ -17,7 +17,7 @@ import type {
   RegisterResponse,
   ProfileResponse,
   ApiResponse,
-} from "../../types/api/auth.types"
+} from "../../types/auth.types"
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)

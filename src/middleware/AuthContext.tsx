@@ -13,7 +13,7 @@ import type {
   UpdateProfileRequest,
   ChangePasswordRequest,
   UserRoles,
-} from "../types/api/auth.types"
+} from "../types/auth.types"
 
 // Initial state
 const initialState: AuthState = {

@@ -1,94 +1,13 @@
-import { apiClient } from "@/services/api-client"
+// src/components/academics/api/academic-api.ts
+
+import { apiClient } from "@/services/api"
 import { API_ENDPOINTS } from "@/config/api.config"
-import type { ApiResponse } from "@/types/api/auth.types"
-
-// Types sesuai dengan Prisma schema dan dokumentasi API
-export interface Student {
-  id: number
-  studentId: string
-  fullName: string
-  gradeLevel: string
-  className: string
-  gender: "male" | "female"
-  dateOfBirth: string
-  enrollmentDate: string
-  isActive: boolean
-}
-
-export interface AcademicRecord {
-  id: number
-  studentId: number
-  subjectId: number
-  teacherId: number
-  semester: string
-  academicYear: string
-  knowledgeScore?: number
-  skillScore?: number
-  attitudeScore?: string
-  midtermExamScore?: number
-  finalExamScore?: number
-  finalScore?: number
-  teacherNotes?: string
-  student?: Student
-  subject?: Subject
-  teacher?: Teacher
-}
-
-export interface Subject {
-  id: number
-  subjectCode: string
-  subjectName: string
-  gradeLevel: string
-  creditHours?: number
-  description?: string
-}
-
-export interface Teacher {
-  id: number
-  teacherId: string
-  fullName: string
-  email: string
-  phoneNumber?: string
-  subjects: string[]
-}
-
-export interface BasicCompetency {
-  id: number
-  subjectId: number
-  competencyCode: string
-  competencyDescription: string
-  difficultyLevel?: string
-  subject?: Subject
-}
-
-export interface StudentAttendance {
-  id: number
-  studentId: number
-  attendanceDate: string
-  status: "present" | "excused" | "sick" | "unexcused"
-  notes?: string
-  student?: Student
-}
-
-export interface AcademicStats {
-  totalStudents: number
-  averageScore: number
-  passRate: number
-  attendanceRate: number
-  subjectPerformance: Array<{
-    subject: string
-    averageScore: number
-    passRate: number
-  }>
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-}
+import type { ApiResponse } from "@/services/api/types"  // Use the new API types
+import type { AcademicRecord, AcademicStats } from "@/types/academic/record.types"
+import type { BasicCompetency, Subject } from "@/types/academic/subject.types"
+import type { Student, StudentAttendance } from "@/types/academic/student.types"
+import type { Teacher } from "@/types/academic/teacher.types"
+import { PaginatedResponse } from "@/types/common.types"
 
 // API Functions - Real API calls menggunakan existing apiClient
 export const academicApi = {
@@ -376,46 +295,46 @@ export const academicApi = {
     }
   },
 
-  // Export Students Data - Updated with better error handling
-  async exportStudents(params?: {
-    gradeLevel?: string
-    className?: string
-    format?: "excel" | "pdf"
-  }): Promise<void> {
-    try {
-      // Build export URL with parameters
-      let exportUrl = `${API_ENDPOINTS.ACADEMIC.STUDENTS}/export`
-      const queryParams = new URLSearchParams()
+  // // Export Students Data - Updated with better error handling
+  // async exportStudents(params?: {
+  //   gradeLevel?: string
+  //   className?: string
+  //   format?: "excel" | "pdf"
+  // }): Promise<void> {
+  //   try {
+  //     // Build export URL with parameters
+  //     let exportUrl = `${API_ENDPOINTS.ACADEMIC.STUDENTS}/export`
+  //     const queryParams = new URLSearchParams()
 
-      if (params?.gradeLevel) queryParams.append("gradeLevel", params.gradeLevel)
-      if (params?.className) queryParams.append("className", params.className)
-      if (params?.format) queryParams.append("format", params.format)
+  //     if (params?.gradeLevel) queryParams.append("gradeLevel", params.gradeLevel)
+  //     if (params?.className) queryParams.append("className", params.className)
+  //     if (params?.format) queryParams.append("format", params.format)
 
-      if (queryParams.toString()) {
-        exportUrl += `?${queryParams.toString()}`
-      }
+  //     if (queryParams.toString()) {
+  //       exportUrl += `?${queryParams.toString()}`
+  //     }
 
-      const filename = `data-siswa-${new Date().toISOString().split("T")[0]}.${params?.format === "pdf" ? "pdf" : "xlsx"}`
+  //     const filename = `data-siswa-${new Date().toISOString().split("T")[0]}.${params?.format === "pdf" ? "pdf" : "xlsx"}`
 
-      await apiClient.download(exportUrl, filename)
-    } catch (error: any) {
-      console.error("Error exporting students:", error)
+  //     await apiClient.download(exportUrl, filename)
+  //   } catch (error: any) {
+  //     console.error("Error exporting students:", error)
 
-      // Extract meaningful error message
-      let errorMessage = "Gagal mengekspor data siswa"
+  //     // Extract meaningful error message
+  //     let errorMessage = "Gagal mengekspor data siswa"
 
-      if (error.message) {
-        errorMessage = error.message
-      } else if (error.originalError?.message) {
-        errorMessage = error.originalError.message
-      } else if (typeof error === "object" && error !== null) {
-        errorMessage = JSON.stringify(error)
-      }
+  //     if (error.message) {
+  //       errorMessage = error.message
+  //     } else if (error.originalError?.message) {
+  //       errorMessage = error.originalError.message
+  //     } else if (typeof error === "object" && error !== null) {
+  //       errorMessage = JSON.stringify(error)
+  //     }
 
-      // Re-throw with more context
-      throw new Error(errorMessage)
-    }
-  },
+  //     // Re-throw with more context
+  //     throw new Error(errorMessage)
+  //   }
+  // },
 
   // Export Academic Records - Updated with better error handling
   async exportAcademicRecords(params?: {
@@ -439,7 +358,7 @@ export const academicApi = {
 
       const filename = `nilai-akademik-${new Date().toISOString().split("T")[0]}.${params?.format === "pdf" ? "pdf" : "xlsx"}`
 
-      await apiClient.download(exportUrl, filename)
+      // await apiClient.download(exportUrl, filename)
     } catch (error: any) {
       console.error("Error exporting academic records:", error)
 
@@ -459,25 +378,25 @@ export const academicApi = {
   },
 
   // Bulk Import Students
-  async importStudents(file: File): Promise<{ success: number; failed: number; errors: string[] }> {
-    try {
-      const response: ApiResponse<{ success: number; failed: number; errors: string[] }> = await apiClient.upload(
-        `${API_ENDPOINTS.ACADEMIC.STUDENTS}/import`,
-        file,
-        {},
-        {
-          requireAuth: true,
-        },
-      )
+  // async importStudents(file: File): Promise<{ success: number; failed: number; errors: string[] }> {
+  //   try {
+  //     const response: ApiResponse<{ success: number; failed: number; errors: string[] }> = await apiClient.upload(
+  //       `${API_ENDPOINTS.ACADEMIC.STUDENTS}/import`,
+  //       file,
+  //       {},
+  //       {
+  //         requireAuth: true,
+  //       },
+  //     )
 
-      if (!response.success || !response.data) {
-        throw new Error(response.message || "Gagal mengimpor data siswa")
-      }
+  //     if (!response.success || !response.data) {
+  //       throw new Error(response.message || "Gagal mengimpor data siswa")
+  //     }
 
-      return response.data
-    } catch (error: any) {
-      console.error("Error importing students:", error)
-      throw error
-    }
-  },
+  //     return response.data
+  //   } catch (error: any) {
+  //     console.error("Error importing students:", error)
+  //     throw error
+  //   }
+  // },
 }

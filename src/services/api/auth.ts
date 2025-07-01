@@ -16,7 +16,7 @@ import type {
   DashboardInfoResponse,
   RefreshTokenResponse,
   ApiResponse,
-} from "../../types/api/auth.types"
+} from "../../types/auth.types"
 
 export class AuthService {
   static validateStoredAuth() {

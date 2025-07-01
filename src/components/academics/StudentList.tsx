@@ -11,8 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Search, Download, Eye, AlertCircle, Upload, FileSpreadsheet } from "lucide-react"
-import { academicApi, type Student, type PaginatedResponse } from "./api/academic-api"
 import { toast } from "sonner"
+import { Student } from "@/types/academic/student.types"
+import { academicApi } from "./api/academic-api"
+import { PaginatedResponse } from "@/types/common.types"
 
 export function StudentList() {
   const [students, setStudents] = useState<Student[]>([])
@@ -64,91 +66,91 @@ export function StudentList() {
     loadStudents()
   }, [searchTerm, gradeFilter, classFilter, pagination.page])
 
-  const handleExport = async (format: "excel" | "pdf" = "excel") => {
-    try {
-      setExportLoading(true)
+  // const handleExport = async (format: "excel" | "pdf" = "excel") => {
+  //   try {
+  //     setExportLoading(true)
 
-      // Show loading toast
-      const loadingToast = toast.loading(`Menyiapkan file ${format.toUpperCase()}...`, {
-        description: "Mohon tunggu, sedang memproses data siswa",
-      })
+  //     // Show loading toast
+  //     const loadingToast = toast.loading(`Menyiapkan file ${format.toUpperCase()}...`, {
+  //       description: "Mohon tunggu, sedang memproses data siswa",
+  //     })
 
-      await academicApi.exportStudents({
-        gradeLevel: gradeFilter !== "all" ? gradeFilter : undefined,
-        className: classFilter !== "all" ? classFilter : undefined,
-        format,
-      })
+  //     await academicApi.exportStudents({
+  //       gradeLevel: gradeFilter !== "all" ? gradeFilter : undefined,
+  //       className: classFilter !== "all" ? classFilter : undefined,
+  //       format,
+  //     })
 
-      // Dismiss loading toast and show success
-      toast.dismiss(loadingToast)
-      toast.success(`Data siswa berhasil diunduh dalam format ${format.toUpperCase()}`, {
-        description: "File telah disimpan ke folder Downloads Anda",
-      })
-    } catch (error: any) {
-      console.error("Error exporting students:", error)
+  //     // Dismiss loading toast and show success
+  //     toast.dismiss(loadingToast)
+  //     toast.success(`Data siswa berhasil diunduh dalam format ${format.toUpperCase()}`, {
+  //       description: "File telah disimpan ke folder Downloads Anda",
+  //     })
+  //   } catch (error: any) {
+  //     console.error("Error exporting students:", error)
 
-      // Provide specific error messages
-      let errorMessage = "Gagal mengunduh data siswa"
-      let errorDescription = "Terjadi kesalahan saat memproses permintaan"
+  //     // Provide specific error messages
+  //     let errorMessage = "Gagal mengunduh data siswa"
+  //     let errorDescription = "Terjadi kesalahan saat memproses permintaan"
 
-      // Extract error message from different possible sources
-      if (error?.message) {
-        if (error.message.includes("ID siswa tidak valid")) {
-          errorMessage = "Data siswa tidak valid"
-          errorDescription = "Terdapat data siswa yang tidak valid dalam sistem"
-        } else if (error.message.includes("404") || error.message.includes("not found")) {
-          errorMessage = "Fitur export belum tersedia"
-          errorDescription = "Endpoint export belum diimplementasi di server"
-        } else if (error.message.includes("403") || error.message.includes("forbidden")) {
-          errorMessage = "Akses ditolak"
-          errorDescription = "Anda tidak memiliki izin untuk mengekspor data"
-        } else if (error.message.includes("401") || error.message.includes("unauthorized")) {
-          errorMessage = "Sesi berakhir"
-          errorDescription = "Silakan login kembali untuk melanjutkan"
-        } else {
-          errorDescription = error.message
-        }
-      } else if (error?.originalError?.message) {
-        errorDescription = error.originalError.message
-      }
+  //     // Extract error message from different possible sources
+  //     if (error?.message) {
+  //       if (error.message.includes("ID siswa tidak valid")) {
+  //         errorMessage = "Data siswa tidak valid"
+  //         errorDescription = "Terdapat data siswa yang tidak valid dalam sistem"
+  //       } else if (error.message.includes("404") || error.message.includes("not found")) {
+  //         errorMessage = "Fitur export belum tersedia"
+  //         errorDescription = "Endpoint export belum diimplementasi di server"
+  //       } else if (error.message.includes("403") || error.message.includes("forbidden")) {
+  //         errorMessage = "Akses ditolak"
+  //         errorDescription = "Anda tidak memiliki izin untuk mengekspor data"
+  //       } else if (error.message.includes("401") || error.message.includes("unauthorized")) {
+  //         errorMessage = "Sesi berakhir"
+  //         errorDescription = "Silakan login kembali untuk melanjutkan"
+  //       } else {
+  //         errorDescription = error.message
+  //       }
+  //     } else if (error?.originalError?.message) {
+  //       errorDescription = error.originalError.message
+  //     }
 
-      toast.error(errorMessage, {
-        description: errorDescription,
-        duration: 5000,
-      })
-    } finally {
-      setExportLoading(false)
-    }
-  }
+  //     toast.error(errorMessage, {
+  //       description: errorDescription,
+  //       duration: 5000,
+  //     })
+  //   } finally {
+  //     setExportLoading(false)
+  //   }
+  // }
 
-  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+  // const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0]
+  //   if (!file) return
 
-    try {
-      const loadingToast = toast.loading("Mengimpor data siswa...", {
-        description: "Mohon tunggu, sedang memproses file",
-      })
+  //   try {
+  //     const loadingToast = toast.loading("Mengimpor data siswa...", {
+  //       description: "Mohon tunggu, sedang memproses file",
+  //     })
 
-      const result = await academicApi.importStudents(file)
+  //     const result = await academicApi.importStudents(file)
 
-      toast.dismiss(loadingToast)
-      toast.success(`Import berhasil: ${result.success} siswa ditambahkan`, {
-        description: result.failed > 0 ? `${result.failed} data gagal diimpor` : "Semua data berhasil diimpor",
-      })
+  //     toast.dismiss(loadingToast)
+  //     toast.success(`Import berhasil: ${result.success} siswa ditambahkan`, {
+  //       description: result.failed > 0 ? `${result.failed} data gagal diimpor` : "Semua data berhasil diimpor",
+  //     })
 
-      // Reload data after import
-      loadStudents()
-    } catch (error: any) {
-      console.error("Error importing students:", error)
-      toast.error("Gagal mengimpor data siswa", {
-        description: error.message || "Terjadi kesalahan saat mengimpor data",
-      })
-    }
+  //     // Reload data after import
+  //     loadStudents()
+  //   } catch (error: any) {
+  //     console.error("Error importing students:", error)
+  //     toast.error("Gagal mengimpor data siswa", {
+  //       description: error.message || "Terjadi kesalahan saat mengimpor data",
+  //     })
+  //   }
 
-    // Reset file input
-    event.target.value = ""
-  }
+  //   // Reset file input
+  //   event.target.value = ""
+  // }
 
   const handleViewDetail = (studentId: number) => {
     // TODO: Navigate to student detail page
@@ -216,12 +218,14 @@ export function StudentList() {
           </Select>
 
           <div className="flex gap-2">
-            <Button onClick={() => handleExport("excel")} variant="outline" disabled={exportLoading}>
+            <Button >
+            {/* // onClick={() => handleExport("excel")} variant="outline" disabled={exportLoading} */}
               <Download className="h-4 w-4 mr-2" />
               {exportLoading ? "Mengunduh..." : "Export Excel"}
             </Button>
 
-            <Button onClick={() => handleExport("pdf")} variant="outline" disabled={exportLoading}>
+            <Button >
+            {/* onClick={() => handleExport("pdf")} variant="outline" disabled={exportLoading} */}
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               {exportLoading ? "Mengunduh..." : "Export PDF"}
             </Button>
@@ -230,7 +234,7 @@ export function StudentList() {
               <Input
                 type="file"
                 accept=".xlsx,.xls,.csv"
-                onChange={handleImport}
+                // onChange={handleImport}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <Button variant="outline">

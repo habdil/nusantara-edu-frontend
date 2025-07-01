@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthContext } from './AuthContext';
-import { UserRoles } from '../types/api/auth.types';
+import { UserRoles } from '../types/auth.types';
 
 interface RouteGuardProps {
   children: React.ReactNode;

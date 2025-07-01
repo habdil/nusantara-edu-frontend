@@ -6,13 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, RefreshCw } from "lucide-react"
+import { toast } from "sonner"
+
+// Komponen-komponen sub-dashboard (asumsi path sudah benar)
 import { AcademicStats } from "./AcademicStats"
 import { StudentList } from "./StudentList"
 import { GradeAnalysis } from "./GradeAnalysis"
 import { AttendanceOverview } from "./AttendanceOverview"
 import { SubjectPerformance } from "./SubjectPerformance"
-import { academicApi, type AcademicStats as AcademicStatsType } from "./api/academic-api"
-import { toast } from "sonner"
+
+// Import API dan Type yang sudah diperbarui
+import { academicApi } from "./api/academic-api"
+import type { AcademicStats as AcademicStatsType } from "@/types/academic/record.types"
 
 export function AcademicDashboard() {
   const [loading, setLoading] = useState(true)
@@ -23,18 +28,17 @@ export function AcademicDashboard() {
     try {
       setLoading(true)
       setError(null)
-
       const stats = await academicApi.getAcademicStats({
         academicYear: "2024/2025",
         semester: "1",
       })
-
       setAcademicStats(stats)
     } catch (error: any) {
       console.error("Error loading academic data:", error)
-      setError(error.message || "Gagal memuat data akademik")
+      const errorMessage = error.message || "Gagal memuat data akademik"
+      setError(errorMessage)
       toast.error("Gagal memuat data akademik", {
-        description: error.message || "Terjadi kesalahan saat memuat data",
+        description: errorMessage,
       })
     } finally {
       setLoading(false)
@@ -54,7 +58,6 @@ export function AcademicDashboard() {
             <p className="text-slate-600 dark:text-slate-400">Monitoring dan analisis performa akademik siswa</p>
           </div>
         </div>
-
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
@@ -87,8 +90,8 @@ export function AcademicDashboard() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Performa Akademik</h1>
           <p className="text-slate-600 dark:text-slate-400">Monitoring dan analisis performa akademik siswa</p>
         </div>
-        <Button variant="outline" onClick={loadData}>
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button variant="outline" onClick={loadData} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
@@ -98,7 +101,7 @@ export function AcademicDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="students">Data Siswa</TabsTrigger>
           <TabsTrigger value="grades">Analisis Nilai</TabsTrigger>
@@ -117,7 +120,6 @@ export function AcademicDashboard() {
                 <GradeAnalysis />
               </CardContent>
             </Card>
-
             <Card>
               <CardHeader>
                 <CardTitle>Tingkat Kehadiran</CardTitle>
@@ -128,24 +130,19 @@ export function AcademicDashboard() {
               </CardContent>
             </Card>
           </div>
-
-          <SubjectPerformance data={academicStats?.subjectPerformance || []} />
+          <SubjectPerformance/>
         </TabsContent>
-
         <TabsContent value="students">
           <StudentList />
         </TabsContent>
-
         <TabsContent value="grades">
           <GradeAnalysis />
         </TabsContent>
-
         <TabsContent value="attendance">
           <AttendanceOverview />
         </TabsContent>
-
         <TabsContent value="subjects">
-          <SubjectPerformance data={academicStats?.subjectPerformance || []} />
+          <SubjectPerformance/>
         </TabsContent>
       </Tabs>
     </div>

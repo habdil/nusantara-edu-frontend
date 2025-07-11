@@ -63,7 +63,7 @@ export default function HeroSection() {
             {/* Quick Stats */}
             <div className="flex items-center space-x-8 pt-8 border-t border-border/50">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">100+</div>
+                <div className="text-2xl font-bold text-primary">3</div>
                 <div className="text-sm text-muted-foreground">Sekolah</div>
               </div>
               <div className="text-center">
@@ -71,7 +71,7 @@ export default function HeroSection() {
                 <div className="text-sm text-muted-foreground">Efisiensi</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">5 Provinsi</div>
+                <div className="text-2xl font-bold text-accent">1 Provinsi</div>
                 <div className="text-sm text-muted-foreground">Jangkauan</div>
               </div>
             </div>

@@ -220,8 +220,8 @@ export function QuickActions() {
                   </span>
                 </div>
                 
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                  {action.description}
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-2 wrap-break-word">
+                  {/* {action.description} */}
                 </p>
                 
                 {action.badge && (

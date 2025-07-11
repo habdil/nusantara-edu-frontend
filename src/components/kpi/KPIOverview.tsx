@@ -37,10 +37,14 @@ export function KPIOverview() {
     fetchKPIData()
   }, [academicYear, period])
 
-  const fetchKPIData = async () => {
+const fetchKPIData = async () => {
     try {
       setLoading(true)
-      const data = await kpiApi.getKPIs(academicYear, period)
+      // ✅ FIX: Kirim sebagai object params, bukan individual arguments
+      const data = await kpiApi.getKPIs({
+        academicYear,
+        period
+      })
       setKpis(data)
     } catch (error) {
       console.error("Error fetching KPI data:", error)
@@ -57,7 +61,11 @@ export function KPIOverview() {
 
   const handleExport = async () => {
     try {
-      await kpiApi.exportKPIReport(academicYear, period)
+      // ✅ FIX: Kirim sebagai object params juga
+      await kpiApi.exportKPIReport({
+        academicYear,
+        period
+      })
     } catch (error) {
       console.error("Error exporting KPI report:", error)
     }

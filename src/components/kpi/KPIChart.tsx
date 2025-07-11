@@ -247,7 +247,7 @@ export function KPICharts({ kpis }: KPIChartsProps) {
                 </div>
                 <div className="text-right space-y-1">
                   <div className="text-2xl font-bold">
-                    {kpi.achievementPercentage?.toFixed(1)}%
+                    {(kpi.achievementPercentage || 0).toFixed(1)}%
                   </div>
                   <Badge
                     variant={

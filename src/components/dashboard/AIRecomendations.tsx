@@ -1,104 +1,64 @@
 "use client";
 
-import { Brain, TrendingUp, Target, Lightbulb, ArrowRight, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Brain, TrendingUp, Target, Lightbulb, ArrowRight, Sparkles, RefreshCw, AlertCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
-// Dummy data berdasarkan ERD ai_recommendations
-const recommendationsData = [
-  {
-    id: 1,
-    category: "academic",
-    title: "Rekomendasi untuk Kelas 10A",
-    description: "Berdasarkan analisis nilai matematika, disarankan menambah jam les khusus untuk 15 siswa dengan nilai di bawah KKM. Prediksi peningkatan nilai hingga 12%.",
-    supportingData: {
-      currentAverage: 68,
-      targetAverage: 75,
-      studentsAffected: 15,
-      successProbability: 85
-    },
-    confidenceLevel: 0.87,
-    generatedDate: "2024-06-21",
-    predictedImpact: "Peningkatan rata-rata nilai 12% dalam 4 minggu",
-    implementationStatus: "pending",
-    icon: Target,
-    color: "blue",
-  },
-  {
-    id: 2,
-    category: "financial",
-    title: "Optimalisasi Anggaran Operasional",
-    description: "AI mendeteksi potensi penghematan 18% pada kategori operasional dengan mengoptimalkan jadwal pemeliharaan dan penggunaan listrik.",
-    supportingData: {
-      currentSpending: 12500000,
-      potentialSaving: 2250000,
-      categories: ["Listrik", "Pemeliharaan", "ATK"]
-    },
-    confidenceLevel: 0.92,
-    generatedDate: "2024-06-20",
-    predictedImpact: "Penghematan Rp 2.25M per bulan",
-    implementationStatus: "in_progress",
-    icon: TrendingUp,
-    color: "green",
-  },
-  {
-    id: 3,
-    category: "teacher",
-    title: "Program Pengembangan Guru",
-    description: "Berdasarkan evaluasi kinerja, 3 guru perlu pelatihan khusus di bidang teknologi pendidikan untuk meningkatkan efektivitas mengajar.",
-    supportingData: {
-      teachersIdentified: 3,
-      currentScore: 72,
-      targetScore: 85,
-      trainingDuration: "2 bulan"
-    },
-    confidenceLevel: 0.79,
-    generatedDate: "2024-06-19",
-    predictedImpact: "Peningkatan skor evaluasi 18%",
-    implementationStatus: "approved",
-    icon: Lightbulb,
-    color: "purple",
-  },
-  {
-    id: 4,
-    category: "asset",
-    title: "Prediksi Perawatan Preventif",
-    description: "Sistem memprediksi 5 aset memerlukan perawatan dalam 2 minggu ke depan. Perawatan preventif dapat mencegah kerusakan senilai Rp 15M.",
-    supportingData: {
-      assetsAtRisk: 5,
-      preventiveCost: 3000000,
-      potentialDamage: 15000000,
-      timeframe: "14 hari"
-    },
-    confidenceLevel: 0.84,
-    generatedDate: "2024-06-18",
-    predictedImpact: "Pencegahan kerugian Rp 15M",
-    implementationStatus: "pending",
-    icon: Brain,
-    color: "orange",
-  },
-  {
-    id: 5,
-    category: "academic",
-    title: "Strategi Peningkatan Kehadiran",
-    description: "Pola absensi menunjukkan tingkat kehadiran menurun pada hari Senin dan Jumat. Disarankan program motivasi khusus pada hari tersebut.",
-    supportingData: {
-      currentAttendance: 89,
-      targetAttendance: 95,
-      criticalDays: ["Senin", "Jumat"],
-      impactedStudents: 45
-    },
-    confidenceLevel: 0.76,
-    generatedDate: "2024-06-17",
-    predictedImpact: "Peningkatan kehadiran 6%",
-    implementationStatus: "pending",
-    icon: Target,
-    color: "blue",
-  },
-];
+// Menggunakan apiClient yang sudah ada untuk konsistensi
+import { apiClient } from "@/services/api";
+import type { ApiResponse } from "@/services/api/types";
 
+// Types
+interface AIRecommendation {
+  id: number;
+  category: string;
+  title: string;
+  description: string;
+  supportingData: any;
+  confidenceLevel: number;
+  generatedDate: string;
+  predictedImpact: string;
+  implementationStatus: string;
+  principalFeedback?: string;
+  icon: string;
+  color: string;
+  urgencyLevel: string;
+}
+
+interface RecommendationStats {
+  total: number;
+  byCategory: Record<string, number>;
+  byStatus: Record<string, number>;
+  byUrgency: Record<string, number>;
+  averageConfidence: number;
+  recentCount: number;
+}
+
+interface RecommendationsResponse {
+  data: AIRecommendation[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  stats: RecommendationStats;
+}
+
+// Icon mapping
+const iconMap = {
+  Target,
+  TrendingUp,
+  Lightbulb,
+  Brain,
+};
+
+// Status config
 const statusConfig = {
   pending: {
     label: "Menunggu",
@@ -116,8 +76,17 @@ const statusConfig = {
     label: "Selesai",
     color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   },
+  rejected: {
+    label: "Ditolak",
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  },
 };
 
+// Perbaikan: Menggunakan NEXT_PUBLIC_API_BASE_URL yang konsisten
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const AI_API_ENDPOINT = `${API_BASE_URL}/api/ai-recommendations`;
+
+// Helper Functions
 const getRelativeTime = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
@@ -138,9 +107,227 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+// API service yang sudah diperbaiki dengan error handling yang lebih baik
+const apiService = {
+  async getRecommendations(params = {}): Promise<RecommendationsResponse> {
+    try {
+      const response: ApiResponse<RecommendationsResponse> = await apiClient.get(AI_API_ENDPOINT, {
+        params: { limit: '10', page: '1', ...params },
+        requireAuth: true,
+      });
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil rekomendasi");
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Get recommendations error:', error);
+      
+      // Handle berbagai tipe error dengan lebih spesifik
+      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Sesi Anda telah berakhir, silakan login kembali.');
+      }
+      
+      if (error.status === 403 || error.message?.includes('403')) {
+        throw new Error('Anda tidak memiliki akses untuk melihat rekomendasi AI.');
+      }
+      
+      if (error.status === 404 || error.message?.includes('404')) {
+        throw new Error('Endpoint rekomendasi AI tidak ditemukan.');
+      }
+      
+      if (error.status >= 500 || error.message?.includes('500')) {
+        throw new Error('Terjadi kesalahan server, silakan coba lagi nanti.');
+      }
+      
+      throw new Error(error.message || 'Gagal memuat rekomendasi AI.');
+    }
+  },
+
+  async generateRecommendations(): Promise<{ saved: number }> {
+    try {
+      const response: ApiResponse<{ saved: number }> = await apiClient.post(`${AI_API_ENDPOINT}/generate`, {}, {
+        requireAuth: true,
+      });
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal membuat rekomendasi baru");
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Generate recommendations error:', error);
+      
+      // Handle berbagai tipe error
+      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Sesi Anda telah berakhir, silakan login kembali.');
+      }
+      
+      if (error.status === 403 || error.message?.includes('403')) {
+        throw new Error('Anda tidak memiliki akses untuk membuat rekomendasi AI.');
+      }
+      
+      if (error.status >= 500 || error.message?.includes('500')) {
+        throw new Error('Terjadi kesalahan server saat membuat rekomendasi.');
+      }
+      
+      throw new Error(error.message || 'Gagal membuat rekomendasi baru.');
+    }
+  },
+
+  async updateRecommendationStatus(id: number, status: string, feedback?: string): Promise<AIRecommendation> {
+    try {
+      const payload = {
+        implementationStatus: status,
+        ...(feedback && { principalFeedback: feedback }),
+      };
+      
+      const response: ApiResponse<AIRecommendation> = await apiClient.put(`${AI_API_ENDPOINT}/${id}`, payload, {
+        requireAuth: true,
+      });
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal memperbarui status rekomendasi");
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Update recommendation status error:', error);
+      
+      // Handle berbagai tipe error
+      if (error.status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+        throw new Error('Sesi Anda telah berakhir, silakan login kembali.');
+      }
+      
+      if (error.status === 403 || error.message?.includes('403')) {
+        throw new Error('Anda tidak memiliki akses untuk memperbarui rekomendasi.');
+      }
+      
+      if (error.status === 404 || error.message?.includes('404')) {
+        throw new Error('Rekomendasi tidak ditemukan.');
+      }
+      
+      throw new Error(error.message || 'Gagal memperbarui status rekomendasi.');
+    }
+  }
+};
+
 export function AIRecommendations() {
-  const pendingRecommendations = recommendationsData.filter(r => r.implementationStatus === "pending").length;
-  const highConfidenceRecs = recommendationsData.filter(r => r.confidenceLevel >= 0.8).length;
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+  const [stats, setStats] = useState<RecommendationStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadRecommendations();
+  }, []);
+
+const loadRecommendations = async (showLoadingState = true) => {
+    try {
+      if (showLoadingState) setLoading(true);
+      setError(null);
+
+      const response = await apiService.getRecommendations();
+      
+      // FIX: Provide a fallback to an empty array for recommendations
+      setRecommendations(response.data || []); 
+      
+      // FIX: Provide a fallback to null for stats
+      setStats(response.stats || null);
+
+    } catch (err: any) {
+      console.error('Load recommendations error:', err);
+      setError(err.message);
+    } finally {
+      if (showLoadingState) setLoading(false);
+    }
+  };
+
+  const handleGenerateRecommendations = async () => {
+    try {
+      setGenerating(true);
+      
+      const response = await apiService.generateRecommendations();
+      
+      toast.success("Rekomendasi Berhasil Dibuat", {
+        description: `${response.saved} rekomendasi baru telah dibuat.`,
+      });
+      
+      await loadRecommendations(false);
+    } catch (err: any) {
+      console.error('Generate recommendations error:', err);
+      toast.error("Gagal Generate Rekomendasi", {
+        description: err.message || 'Terjadi kesalahan tidak diketahui',
+      });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id: number, status: string) => {
+    try {
+      await apiService.updateRecommendationStatus(id, status);
+      
+      toast.success("Status Berhasil Diperbarui");
+      
+      setRecommendations(prev => 
+        prev.map(rec => 
+          rec.id === id 
+            ? { ...rec, implementationStatus: status }
+            : rec
+        )
+      );
+    } catch (err: any) {
+      console.error('Update status error:', err);
+      toast.error("Gagal Memperbarui Status", {
+        description: err.message || 'Terjadi kesalahan tidak diketahui',
+      });
+    }
+  };
+
+  const pendingRecommendations = stats ? (stats.byStatus.pending || 0) : 0;
+  const highConfidenceRecs = recommendations.filter(r => r.confidenceLevel >= 0.8).length;
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" /> Rekomendasi AI
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Memuat rekomendasi...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" /> Rekomendasi AI
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button onClick={() => loadRecommendations()} className="w-full mt-4" variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" /> Coba Lagi
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -148,140 +335,89 @@ export function AIRecommendations() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Brain className="h-5 w-5 text-blue-600" />
-              Rekomendasi AI
+              <Brain className="h-5 w-5 text-blue-600" /> Rekomendasi AI
             </CardTitle>
-            <CardDescription>
-              Saran berbasis analisis data dan machine learning
-            </CardDescription>
+            <CardDescription>Saran berbasis analisis data dan machine learning</CardDescription>
           </div>
-          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-            <Sparkles className="h-3 w-3 mr-1" />
-            {recommendationsData.length} rekomendasi
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+              <Sparkles className="h-3 w-3 mr-1" /> {stats?.total || 0} rekomendasi
+            </Badge>
+            <Button size="sm" variant="outline" onClick={() => loadRecommendations()} disabled={loading}>
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="text-center p-2 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-            <p className="text-lg font-bold text-blue-600">{pendingRecommendations}</p>
-            <p className="text-xs text-muted-foreground">Menunggu</p>
+        {recommendations.length === 0 ? (
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium">Belum Ada Rekomendasi</h3>
+            <p className="text-sm text-muted-foreground mb-4">Generate rekomendasi AI berdasarkan data sekolah Anda.</p>
+            <Button onClick={handleGenerateRecommendations} disabled={generating}>
+              {generating ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</>
+              ) : (
+                <><Sparkles className="h-4 w-4 mr-2" /> Generate Rekomendasi</>
+              )}
+            </Button>
           </div>
-          <div className="text-center p-2 bg-green-50 dark:bg-green-950/20 rounded-lg">
-            <p className="text-lg font-bold text-green-600">{highConfidenceRecs}</p>
-            <p className="text-xs text-muted-foreground">Tinggi Akurasi</p>
-          </div>
-        </div>
-
-        {/* Recommendations List */}
-        <ScrollArea className="h-80">
-          <div className="space-y-3">
-            {recommendationsData.map((recommendation) => {
-              const statusInfo = statusConfig[recommendation.implementationStatus as keyof typeof statusConfig];
-              
-              return (
-                <div
-                  key={recommendation.id}
-                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={`p-2 rounded-lg ${
-                        recommendation.color === 'blue' ? 'bg-blue-50 dark:bg-blue-950/20' :
-                        recommendation.color === 'green' ? 'bg-green-50 dark:bg-green-950/20' :
-                        recommendation.color === 'purple' ? 'bg-purple-50 dark:bg-purple-950/20' :
-                        'bg-orange-50 dark:bg-orange-950/20'
-                      }`}>
-                        <recommendation.icon className={`h-4 w-4 ${
-                          recommendation.color === 'blue' ? 'text-blue-600' :
-                          recommendation.color === 'green' ? 'text-green-600' :
-                          recommendation.color === 'purple' ? 'text-purple-600' :
-                          'text-orange-600'
-                        }`} />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                            {recommendation.title}
-                          </h4>
-                          <Badge className={`text-xs ${statusInfo.color}`}>
-                            {statusInfo.label}
-                          </Badge>
+        ) : (
+          <>
+            <ScrollArea className="h-80 pr-3">
+              <div className="space-y-3">
+                {recommendations.map((rec) => {
+                  const statusInfo = statusConfig[rec.implementationStatus as keyof typeof statusConfig] || statusConfig.pending;
+                  const IconComponent = iconMap[rec.icon as keyof typeof iconMap] || Target;
+                  
+                  return (
+                    <div key={rec.id} className="p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          rec.color === 'blue' ? 'bg-blue-100 dark:bg-blue-900/50' :
+                          rec.color === 'green' ? 'bg-green-100 dark:bg-green-900/50' :
+                          rec.color === 'purple' ? 'bg-purple-100 dark:bg-purple-900/50' :
+                          'bg-orange-100 dark:bg-orange-900/50'
+                        }`}>
+                          <IconComponent className={`h-4 w-4 ${
+                            rec.color === 'blue' ? 'text-blue-600' :
+                            rec.color === 'green' ? 'text-green-600' :
+                            rec.color === 'purple' ? 'text-purple-600' :
+                            'text-orange-600'
+                          }`} />
                         </div>
-                        
-                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                          {recommendation.description}
-                        </p>
-                        
-                        {/* Supporting Data */}
-                        {recommendation.category === "academic" && recommendation.supportingData.currentAverage && (
-                          <div className="flex items-center gap-4 text-xs mb-2">
-                            <span className="text-muted-foreground">
-                              Nilai saat ini: <span className="font-medium text-red-600">{recommendation.supportingData.currentAverage}</span>
-                            </span>
-                            <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">
-                              Target: <span className="font-medium text-green-600">{recommendation.supportingData.targetAverage}</span>
-                            </span>
-                          </div>
-                        )}
-                        
-                        {recommendation.category === "financial" && recommendation.supportingData.potentialSaving && (
-                          <div className="text-xs mb-2">
-                            <span className="text-muted-foreground">
-                              Potensi penghematan: <span className="font-medium text-green-600">{formatCurrency(recommendation.supportingData.potentialSaving)}</span>
-                            </span>
-                          </div>
-                        )}
-                        
-                        {recommendation.category === "asset" && recommendation.supportingData.assetsAtRisk && (
-                          <div className="text-xs mb-2">
-                            <span className="text-muted-foreground">
-                              Aset berisiko: <span className="font-medium text-red-600">{recommendation.supportingData.assetsAtRisk}</span> • 
-                              Pencegahan kerugian: <span className="font-medium text-green-600">{formatCurrency(recommendation.supportingData.potentialDamage)}</span>
-                            </span>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-3">
-                            <span className="text-muted-foreground">
-                              {getRelativeTime(recommendation.generatedDate)}
-                            </span>
-                            <span className={`font-medium ${
-                              recommendation.confidenceLevel >= 0.9 ? 'text-green-600' :
-                              recommendation.confidenceLevel >= 0.8 ? 'text-blue-600' :
-                              'text-yellow-600'
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-medium text-sm truncate">{rec.title}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{rec.description}</p>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                            <span>{getRelativeTime(rec.generatedDate)}</span>
+                            <span>&middot;</span>
+                            <Badge variant="outline" className={`font-medium ${
+                              rec.confidenceLevel >= 0.9 ? 'text-green-600 border-green-200' :
+                              rec.confidenceLevel >= 0.8 ? 'text-blue-600 border-blue-200' : 'text-yellow-600 border-yellow-200'
                             }`}>
-                              Akurasi: {Math.round(recommendation.confidenceLevel * 100)}%
-                            </span>
+                              Akurasi {Math.round(rec.confidenceLevel * 100)}%
+                            </Badge>
                           </div>
-                        </div>
-                        
-                        <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded text-xs">
-                          <span className="font-medium text-gray-900 dark:text-white">Prediksi Dampak: </span>
-                          <span className="text-muted-foreground">{recommendation.predictedImpact}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-        
-        {/* Action Buttons */}
-        <div className="mt-4 pt-4 border-t space-y-2">
-          <Button variant="outline" className="w-full text-sm">
-            Chat dengan AI Assistant
-          </Button>
-          <Button variant="ghost" className="w-full text-sm text-muted-foreground">
-            Lihat Semua Rekomendasi
-          </Button>
-        </div>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <Button variant="outline" className="w-full" onClick={handleGenerateRecommendations} disabled={generating}>
+                {generating ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Membuat...</>
+                ) : (
+                  <><Sparkles className="h-4 w-4 mr-2" /> Generate Rekomendasi Baru</>
+                )}
+              </Button>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

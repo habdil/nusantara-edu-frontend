@@ -53,17 +53,21 @@ export function KPIComparison({ kpis, academicYear, period }: KPIComparisonProps
     }
   }, [comparisonPeriod, comparisonYear])
 
-  const fetchComparisonData = async () => {
-    try {
-      setLoading(true)
-      const data = await kpiApi.getKPIs(comparisonYear, comparisonPeriod)
-      setComparisonData(data)
-    } catch (error) {
-      console.error("Error fetching comparison data:", error)
-    } finally {
-      setLoading(false)
-    }
+const fetchComparisonData = async () => {
+  try {
+    setLoading(true)
+    // ✅ FIX: Kirim sebagai object params, bukan individual arguments
+    const data = await kpiApi.getKPIs({
+      academicYear: comparisonYear,
+      period: comparisonPeriod
+    })
+    setComparisonData(data)
+  } catch (error) {
+    console.error("Error fetching comparison data:", error)
+  } finally {
+    setLoading(false)
   }
+}
 
   const getComparisonAnalysis = () => {
     const analysis = kpis.map(currentKpi => {

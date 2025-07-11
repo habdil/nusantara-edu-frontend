@@ -1,175 +1,247 @@
 import type { Asset, AssetMaintenance, ConditionStatus } from "@/types/resources"
+import { apiClient } from "@/services/api"
+import type { ApiResponse } from "@/services/api/types"
 
-// Dummy data for assets based on Prisma schema
-const mockAssets: Asset[] = [
-  {
-    id: 1,
-    schoolId: 1,
-    assetCode: "AST-001",
-    assetName: "Laptop Dell Inspiron 15",
-    assetCategory: "Electronics",
-    description: "Laptop untuk kegiatan administrasi",
-    purchaseDate: new Date("2023-01-15"),
-    purchasePrice: 8500000,
-    currentValue: 7000000,
-    condition: "good" as ConditionStatus,
-    location: "Ruang Kepala Sekolah",
-    supplier: "PT. Teknologi Maju",
-    warrantyExpiry: new Date("2025-01-15"),
-    qrCode: "QR-AST-001",
-    assetPhoto: "/placeholder.svg?height=200&width=200",
-    createdAt: new Date("2023-01-15"),
-    updatedAt: new Date("2024-01-15"),
-  },
-  {
-    id: 2,
-    schoolId: 1,
-    assetCode: "AST-002",
-    assetName: "Proyektor Epson EB-X41",
-    assetCategory: "Electronics",
-    description: "Proyektor untuk presentasi kelas",
-    purchaseDate: new Date("2023-03-20"),
-    purchasePrice: 4500000,
-    currentValue: 3800000,
-    condition: "good" as ConditionStatus,
-    location: "Ruang Kelas 6A",
-    supplier: "CV. Media Edukasi",
-    warrantyExpiry: new Date("2025-03-20"),
-    qrCode: "QR-AST-002",
-    assetPhoto: "/placeholder.svg?height=200&width=200",
-    createdAt: new Date("2023-03-20"),
-    updatedAt: new Date("2024-03-20"),
-  },
-  {
-    id: 3,
-    schoolId: 1,
-    assetCode: "AST-003",
-    assetName: "Meja Guru Kayu Jati",
-    assetCategory: "Furniture",
-    description: "Meja guru untuk ruang kelas",
-    purchaseDate: new Date("2022-08-10"),
-    purchasePrice: 1200000,
-    currentValue: 900000,
-    condition: "minor_damage" as ConditionStatus,
-    location: "Ruang Kelas 5B",
-    supplier: "UD. Furniture Jaya",
-    warrantyExpiry: new Date("2024-08-10"),
-    qrCode: "QR-AST-003",
-    assetPhoto: "/placeholder.svg?height=200&width=200",
-    createdAt: new Date("2022-08-10"),
-    updatedAt: new Date("2024-08-10"),
-  },
-  {
-    id: 4,
-    schoolId: 1,
-    assetCode: "AST-004",
-    assetName: "AC Split 1.5 PK",
-    assetCategory: "Electronics",
-    description: "Air conditioner untuk ruang kepala sekolah",
-    purchaseDate: new Date("2023-06-15"),
-    purchasePrice: 3200000,
-    currentValue: 2800000,
-    condition: "good" as ConditionStatus,
-    location: "Ruang Kepala Sekolah",
-    supplier: "PT. Elektronik Sejahtera",
-    warrantyExpiry: new Date("2026-06-15"),
-    qrCode: "QR-AST-004",
-    assetPhoto: "/placeholder.svg?height=200&width=200",
-    createdAt: new Date("2023-06-15"),
-    updatedAt: new Date("2024-06-15"),
-  },
-]
+// Base URL for the API - menggunakan environment variable yang sama dengan academic
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
 
-const mockMaintenanceRecords: AssetMaintenance[] = [
-  {
-    id: 1,
-    assetId: 1,
-    maintenanceDate: new Date("2024-01-15"),
-    maintenanceType: "Preventive",
-    description: "Pembersihan dan update software",
-    cost: 150000,
-    technician: "Ahmad Teknisi",
-    maintenanceResult: "Berhasil, laptop berjalan normal",
-    nextMaintenanceDate: new Date("2024-07-15"),
-    createdAt: new Date("2024-01-15"),
-    updatedAt: new Date("2024-01-15"),
-  },
-  {
-    id: 2,
-    assetId: 3,
-    maintenanceDate: new Date("2024-02-20"),
-    maintenanceType: "Corrective",
-    description: "Perbaikan laci yang rusak",
-    cost: 200000,
-    technician: "Budi Furniture",
-    maintenanceResult: "Laci sudah diperbaiki",
-    nextMaintenanceDate: new Date("2024-08-20"),
-    createdAt: new Date("2024-02-20"),
-    updatedAt: new Date("2024-02-20"),
-  },
-]
+// API Endpoints untuk assets
+const API_ENDPOINTS = {
+  ASSETS: `${API_BASE_URL}/api/assets`,
+  MAINTENANCE: `${API_BASE_URL}/api/assets/maintenance`
+}
 
 export const assetsApi = {
   // Get all assets
-  getAssets: async (): Promise<Asset[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    return mockAssets
+  getAssets: async (params?: {
+    category?: string
+    condition?: string
+    location?: string
+    search?: string
+    page?: number
+    limit?: number
+  }): Promise<Asset[]> => {
+    try {
+      const response: ApiResponse<Asset[]> = await apiClient.get(`${API_BASE_URL}/api/assets`, {
+        params,
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil data aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching assets:', error)
+      throw error
+    }
   },
 
   // Get asset by ID
   getAssetById: async (id: number): Promise<Asset | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    return mockAssets.find((asset) => asset.id === id) || null
+    try {
+      const response: ApiResponse<Asset> = await apiClient.get(`${API_BASE_URL}/api/assets/${id}`, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil data aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      if (error.message?.includes('404')) {
+        return null
+      }
+      console.error('Error fetching asset by ID:', error)
+      throw error
+    }
   },
 
   // Get assets by category
   getAssetsByCategory: async (category: string): Promise<Asset[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    return mockAssets.filter((asset) => asset.assetCategory === category)
+    try {
+      const response: ApiResponse<Asset[]> = await apiClient.get(`${API_BASE_URL}/api/assets/category/${encodeURIComponent(category)}`, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil data aset berdasarkan kategori")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching assets by category:', error)
+      throw error
+    }
   },
 
   // Get maintenance records for an asset
   getMaintenanceRecords: async (assetId: number): Promise<AssetMaintenance[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 600))
-    return mockMaintenanceRecords.filter((record) => record.assetId === assetId)
+    try {
+      const response: ApiResponse<AssetMaintenance[]> = await apiClient.get(`${API_BASE_URL}/api/assets/${assetId}/maintenance`, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil data pemeliharaan aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching maintenance records:', error)
+      throw error
+    }
   },
 
   // Get all maintenance records
   getAllMaintenanceRecords: async (): Promise<AssetMaintenance[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    return mockMaintenanceRecords
+    try {
+      const response: ApiResponse<AssetMaintenance[]> = await apiClient.get(`${API_BASE_URL}/api/assets/maintenance/all`, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil semua data pemeliharaan")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching all maintenance records:', error)
+      throw error
+    }
   },
 
   // Add new asset
   addAsset: async (asset: Omit<Asset, "id" | "createdAt" | "updatedAt">): Promise<Asset> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const newAsset: Asset = {
-      ...asset,
-      id: mockAssets.length + 1,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    try {
+      // Transform frontend format to backend format
+      const backendAsset = {
+        assetCode: asset.assetCode,
+        assetName: asset.assetName,
+        assetCategory: asset.assetCategory,
+        description: asset.description,
+        acquisitionDate: asset.purchaseDate,
+        acquisitionValue: asset.purchasePrice,
+        usefulLife: 60, // Default useful life in months, can be made configurable
+        condition: asset.condition,
+        location: asset.location,
+        notes: asset.description,
+        qrCode: asset.qrCode,
+        assetPhoto: asset.assetPhoto
+      }
+
+      const response: ApiResponse<Asset> = await apiClient.post(`${API_BASE_URL}/api/assets`, backendAsset, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal menambahkan aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error adding asset:', error)
+      throw error
     }
-    mockAssets.push(newAsset)
-    return newAsset
   },
 
   // Update asset
   updateAsset: async (id: number, updates: Partial<Asset>): Promise<Asset | null> => {
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    const index = mockAssets.findIndex((asset) => asset.id === id)
-    if (index === -1) return null
+    try {
+      // Transform frontend format to backend format
+      const backendUpdates: any = {}
+      if (updates.assetName !== undefined) backendUpdates.assetName = updates.assetName
+      if (updates.assetCategory !== undefined) backendUpdates.assetCategory = updates.assetCategory
+      if (updates.description !== undefined) backendUpdates.description = updates.description
+      if (updates.condition !== undefined) backendUpdates.condition = updates.condition
+      if (updates.location !== undefined) backendUpdates.location = updates.location
+      if (updates.qrCode !== undefined) backendUpdates.qrCode = updates.qrCode
+      if (updates.assetPhoto !== undefined) backendUpdates.assetPhoto = updates.assetPhoto
 
-    mockAssets[index] = { ...mockAssets[index], ...updates, updatedAt: new Date() }
-    return mockAssets[index]
+      const response: ApiResponse<Asset> = await apiClient.put(`${API_BASE_URL}/api/assets/${id}`, backendUpdates, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal memperbarui aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      if (error.message?.includes('404')) {
+        return null
+      }
+      console.error('Error updating asset:', error)
+      throw error
+    }
   },
 
   // Delete asset
   deleteAsset: async (id: number): Promise<boolean> => {
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    const index = mockAssets.findIndex((asset) => asset.id === id)
-    if (index === -1) return false
+    try {
+      const response: ApiResponse<void> = await apiClient.delete(`${API_BASE_URL}/api/assets/${id}`, {
+        requireAuth: true,
+      })
 
-    mockAssets.splice(index, 1)
-    return true
+      if (!response.success) {
+        throw new Error(response.message || "Gagal menghapus aset")
+      }
+
+      return true
+    } catch (error: any) {
+      if (error.message?.includes('404')) {
+        return false
+      }
+      console.error('Error deleting asset:', error)
+      throw error
+    }
+  },
+
+  // Add maintenance record
+  addMaintenanceRecord: async (maintenance: Omit<AssetMaintenance, "id" | "createdAt" | "updatedAt">): Promise<AssetMaintenance> => {
+    try {
+      const response: ApiResponse<AssetMaintenance> = await apiClient.post(`${API_BASE_URL}/api/assets/maintenance`, maintenance, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal menambahkan data pemeliharaan")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error adding maintenance record:', error)
+      throw error
+    }
+  },
+
+  // Get asset statistics
+  getAssetStats: async (): Promise<{
+    totalAssets: number
+    totalValue: number
+    assetsByCondition: Array<{ condition: string; count: number }>
+    assetsByCategory: Array<{ category: string; count: number }>
+  }> => {
+    try {
+      const response: ApiResponse<{
+        totalAssets: number
+        totalValue: number
+        assetsByCondition: Array<{ condition: string; count: number }>
+        assetsByCategory: Array<{ category: string; count: number }>
+      }> = await apiClient.get(`${API_BASE_URL}/api/assets/stats`, {
+        requireAuth: true,
+      })
+
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Gagal mengambil statistik aset")
+      }
+
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching asset statistics:', error)
+      throw error
+    }
   },
 }

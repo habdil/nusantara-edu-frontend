@@ -114,8 +114,6 @@ const menuData: { navMain: MenuItem[] } = {
 
       icon: UserCog,
 
-      badge: "3",
-
       badgeVariant: "destructive",
 
       roles: ["principal", "admin"],
@@ -130,30 +128,15 @@ const menuData: { navMain: MenuItem[] } = {
 
       roles: ["principal", "admin"],
     },
+    // {
+    //   title: "Pengaturan Sistem",
 
-    {
-      title: "Pelaporan Otomatis",
+    //   url: "/dashboard/settings",
 
-      url: "/dashboard/reports",
+    //   icon: Settings,
 
-      icon: FileText,
-
-      badge: "2",
-
-      badgeVariant: "secondary",
-
-      roles: ["principal", "admin"],
-    },
-
-    {
-      title: "Pengaturan Sistem",
-
-      url: "/dashboard/settings",
-
-      icon: Settings,
-
-      roles: ["principal", "admin"],
-    },
+    //   roles: ["principal", "admin"],
+    // },
   ],
 }
 
@@ -503,19 +486,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem asChild className="hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  {/* <DropdownMenuItem asChild className="hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                     <Link href="/dashboard/settings">
                       <Settings className="mr-3 h-4 w-4 text-slate-600 dark:text-slate-400" />
 
                       <span>Pengaturan</span>
                     </Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
-                  <DropdownMenuItem className="hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                  {/* <DropdownMenuItem className="hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                     <AlertCircle className="mr-3 h-4 w-4 text-slate-600 dark:text-slate-400" />
 
                     <span>Bantuan & Dukungan</span>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
                   <DropdownMenuSeparator />
 

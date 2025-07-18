@@ -107,22 +107,116 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// API service yang sudah diperbaiki dengan error handling yang lebih baik
+// API service dengan debug logs yang lebih lengkap
 const apiService = {
-  async getRecommendations(params = {}): Promise<RecommendationsResponse> {
+  async getAllRecommendations(): Promise<RecommendationsResponse> {
     try {
-      const response: ApiResponse<RecommendationsResponse> = await apiClient.get(AI_API_ENDPOINT, {
-        params: { limit: '10', page: '1', ...params },
-        requireAuth: true,
+      console.log('🔍 Starting getAllRecommendations...');
+      console.log('API Endpoint:', AI_API_ENDPOINT);
+      
+      let allRecommendations: AIRecommendation[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+      let stats: RecommendationStats | null = null;
+
+      // Loop untuk mengambil semua halaman data
+      do {
+        console.log(`📄 Fetching page ${currentPage}...`);
+        
+        const response: ApiResponse<any> = await apiClient.get(AI_API_ENDPOINT, {
+          params: { 
+            limit: '100',
+            page: currentPage.toString(),
+          },
+          requireAuth: true,
+        });
+        
+        console.log('📡 Raw API Response:', response);
+        
+        if (!response.success) {
+          console.error('❌ API Error:', response.message);
+          throw new Error(response.message || "Gagal mengambil rekomendasi");
+        }
+
+        // 🔧 FIX: Cek apakah response.data adalah object atau sudah array
+        let responseData;
+        if (response.data && typeof response.data === 'object') {
+          // Case 1: Response wrapper {data: [], pagination: {}, stats: {}}
+          if (Array.isArray(response.data.data)) {
+            responseData = {
+              data: response.data.data,
+              pagination: response.data.pagination,
+              stats: response.data.stats
+            };
+          }
+          // Case 2: Response langsung {data: [], pagination: {}, stats: {}}
+          else if (Array.isArray(response.data)) {
+            responseData = {
+              data: response.data,
+              pagination: { page: currentPage, limit: 100, total: response.data.length, totalPages: 1 },
+              stats: null
+            };
+          }
+          // Case 3: Response success: true, data: {data: [], pagination: {}, stats: {}}
+          else {
+            responseData = {
+              data: response.data.data || [],
+              pagination: response.data.pagination || { page: currentPage, limit: 100, total: 0, totalPages: 1 },
+              stats: response.data.stats || null
+            };
+          }
+        } else {
+          console.error('❌ Unexpected response format:', response);
+          throw new Error("Format response tidak valid");
+        }
+        
+        console.log('🔧 Processed response data:', {
+          dataLength: responseData.data?.length || 0,
+          pagination: responseData.pagination,
+          stats: responseData.stats
+        });
+        
+        // Kumpulkan data dari response
+        const pageData = responseData.data || [];
+        allRecommendations = [...allRecommendations, ...pageData];
+        
+        // Update stats dari response pertama
+        if (currentPage === 1) {
+          stats = responseData.stats;
+          totalPages = responseData.pagination?.totalPages || 1;
+          console.log('📈 Stats from first page:', stats);
+          console.log('📚 Total Pages:', totalPages);
+        }
+        
+        currentPage++;
+      } while (currentPage <= totalPages);
+
+      console.log('✅ Final result:', {
+        totalRecommendations: allRecommendations.length,
+        firstFewRecommendations: allRecommendations.slice(0, 3),
+        stats
       });
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.message || "Gagal mengambil rekomendasi");
-      }
-      
-      return response.data;
+
+      // Return semua data yang telah dikumpulkan
+      return {
+        data: allRecommendations,
+        pagination: {
+          page: 1,
+          limit: allRecommendations.length,
+          total: allRecommendations.length,
+          totalPages: 1,
+        },
+        stats: stats || {
+          total: allRecommendations.length,
+          byCategory: {},
+          byStatus: {},
+          byUrgency: {},
+          averageConfidence: 0,
+          recentCount: 0,
+        },
+      };
     } catch (error: any) {
-      console.error('Get recommendations error:', error);
+      console.error('💥 getAllRecommendations error:', error);
       
       // Handle berbagai tipe error dengan lebih spesifik
       if (error.status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
@@ -147,17 +241,22 @@ const apiService = {
 
   async generateRecommendations(): Promise<{ saved: number }> {
     try {
+      console.log('🚀 Generating recommendations...');
+      
       const response: ApiResponse<{ saved: number }> = await apiClient.post(`${AI_API_ENDPOINT}/generate`, {}, {
         requireAuth: true,
       });
+      
+      console.log('📡 Generate response:', response);
       
       if (!response.success || !response.data) {
         throw new Error(response.message || "Gagal membuat rekomendasi baru");
       }
       
+      console.log('✅ Generate successful:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('Generate recommendations error:', error);
+      console.error('💥 Generate recommendations error:', error);
       
       // Handle berbagai tipe error
       if (error.status === 401 || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
@@ -221,29 +320,50 @@ export function AIRecommendations() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadRecommendations();
+    console.log('🎯 Component mounted, loading recommendations...');
+    loadAllRecommendations();
   }, []);
 
-const loadRecommendations = async (showLoadingState = true) => {
-    try {
-      if (showLoadingState) setLoading(true);
-      setError(null);
+  const loadAllRecommendations = async (showLoadingState = true) => {
+    try {
+      console.log('📥 loadAllRecommendations called, showLoadingState:', showLoadingState);
+      
+      if (showLoadingState) setLoading(true);
+      setError(null);
 
-      const response = await apiService.getRecommendations();
+      console.log('📞 Calling apiService.getAllRecommendations...');
+      const response = await apiService.getAllRecommendations();
+      
+      console.log('📤 Service response received:', {
+        dataLength: response.data?.length || 0,
+        statsTotal: response.stats?.total || 0,
+        hasStats: !!response.stats
+      });
       
       // FIX: Provide a fallback to an empty array for recommendations
-      setRecommendations(response.data || []); 
+      const recommendationsData = response.data || [];
+      const statsData = response.stats || null;
       
-      // FIX: Provide a fallback to null for stats
-      setStats(response.stats || null);
+      console.log('💾 Setting state with:', {
+        recommendationsCount: recommendationsData.length,
+        stats: statsData
+      });
+      
+      setRecommendations(recommendationsData); 
+      setStats(statsData);
+      
+      console.log('✅ State updated successfully');
 
-    } catch (err: any) {
-      console.error('Load recommendations error:', err);
-      setError(err.message);
-    } finally {
-      if (showLoadingState) setLoading(false);
-    }
-  };
+    } catch (err: any) {
+      console.error('💥 Load all recommendations error:', err);
+      setError(err.message);
+    } finally {
+      if (showLoadingState) {
+        console.log('🏁 Setting loading to false');
+        setLoading(false);
+      }
+    }
+  };
 
   const handleGenerateRecommendations = async () => {
     try {
@@ -255,7 +375,8 @@ const loadRecommendations = async (showLoadingState = true) => {
         description: `${response.saved} rekomendasi baru telah dibuat.`,
       });
       
-      await loadRecommendations(false);
+      // Reload semua data setelah generate
+      await loadAllRecommendations(false);
     } catch (err: any) {
       console.error('Generate recommendations error:', err);
       toast.error("Gagal Generate Rekomendasi", {
@@ -290,7 +411,16 @@ const loadRecommendations = async (showLoadingState = true) => {
   const pendingRecommendations = stats ? (stats.byStatus.pending || 0) : 0;
   const highConfidenceRecs = recommendations.filter(r => r.confidenceLevel >= 0.8).length;
 
+  // Debug logs untuk render
+  console.log('🎨 Rendering component with:', {
+    loading,
+    error,
+    recommendationsLength: recommendations.length,
+    stats
+  });
+
   if (loading) {
+    console.log('⏳ Rendering loading state');
     return (
       <Card>
         <CardHeader>
@@ -298,10 +428,10 @@ const loadRecommendations = async (showLoadingState = true) => {
             <Brain className="h-5 w-5 text-blue-600" /> Rekomendasi AI
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center h-64">
+        <CardContent className="flex items-center justify-center h-94">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Memuat rekomendasi...</span>
+            <span>Memuat semua rekomendasi...</span>
           </div>
         </CardContent>
       </Card>
@@ -309,6 +439,7 @@ const loadRecommendations = async (showLoadingState = true) => {
   }
 
   if (error) {
+    console.log('❌ Rendering error state:', error);
     return (
       <Card>
         <CardHeader>
@@ -321,13 +452,15 @@ const loadRecommendations = async (showLoadingState = true) => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-          <Button onClick={() => loadRecommendations()} className="w-full mt-4" variant="outline">
+          <Button onClick={() => loadAllRecommendations()} className="w-full mt-4" variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" /> Coba Lagi
           </Button>
         </CardContent>
       </Card>
     );
   }
+
+  console.log('🎯 Rendering main content with', recommendations.length, 'recommendations');
 
   return (
     <Card>
@@ -337,13 +470,13 @@ const loadRecommendations = async (showLoadingState = true) => {
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Brain className="h-5 w-5 text-blue-600" /> Rekomendasi AI
             </CardTitle>
-            <CardDescription>Saran berbasis analisis data dan machine learning</CardDescription>
+            <CardDescription>Semua rekomendasi berbasis analisis data dan machine learning</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-              <Sparkles className="h-3 w-3 mr-1" /> {stats?.total || 0} rekomendasi
+              <Sparkles className="h-3 w-3 mr-1" /> {recommendations.length} total rekomendasi
             </Badge>
-            <Button size="sm" variant="outline" onClick={() => loadRecommendations()} disabled={loading}>
+            <Button size="sm" variant="outline" onClick={() => loadAllRecommendations()} disabled={loading}>
               <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
@@ -351,7 +484,7 @@ const loadRecommendations = async (showLoadingState = true) => {
       </CardHeader>
       <CardContent>
         {recommendations.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-12">
             <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium">Belum Ada Rekomendasi</h3>
             <p className="text-sm text-muted-foreground mb-4">Generate rekomendasi AI berdasarkan data sekolah Anda.</p>
@@ -365,7 +498,16 @@ const loadRecommendations = async (showLoadingState = true) => {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-80 pr-3">
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                📊 Menampilkan <span className="font-semibold">{recommendations.length}</span> rekomendasi total
+                {highConfidenceRecs > 0 && (
+                  <> • <span className="font-semibold">{highConfidenceRecs}</span> dengan akurasi tinggi (≥80%)</>
+                )}
+              </p>
+            </div>
+            
+            <ScrollArea className="h-[40rem] pr-3">
               <div className="space-y-3">
                 {recommendations.map((rec) => {
                   const statusInfo = statusConfig[rec.implementationStatus as keyof typeof statusConfig] || statusConfig.pending;
@@ -398,6 +540,10 @@ const loadRecommendations = async (showLoadingState = true) => {
                               rec.confidenceLevel >= 0.8 ? 'text-blue-600 border-blue-200' : 'text-yellow-600 border-yellow-200'
                             }`}>
                               Akurasi {Math.round(rec.confidenceLevel * 100)}%
+                            </Badge>
+                            <span>&middot;</span>
+                            <Badge variant="secondary" className={statusInfo.color}>
+                              {statusInfo.label}
                             </Badge>
                           </div>
                         </div>

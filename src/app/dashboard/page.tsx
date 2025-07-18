@@ -50,14 +50,12 @@ export default function DashboardPage() {
             <AttendanceTrend />
             <AcademicPerformance />
             <FinancialOverview />
-            <RecentActivities />
           </div>
 
           {/* Right Column - Widgets */}
           <div className="space-y-6">
             <EarlyWarnings />
             <AIRecommendations />
-            <QuickActions />
           </div>
         </div>
       </div>

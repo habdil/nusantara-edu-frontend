@@ -369,7 +369,7 @@ export function EarlyWarnings() {
             </div>
 
             {/* Warnings List */}
-            <ScrollArea className="h-[49rem]">
+            <ScrollArea className="h-[48rem]">
               <div className="space-y-3">
                 {warnings.map((warning) => {
                   const urgencyInfo = urgencyConfig[warning.urgency as keyof typeof urgencyConfig];

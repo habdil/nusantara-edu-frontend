@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { Student } from "@/types/academic/student.types"
 import { academicApi } from "./api/academic-api"
 import { PaginatedResponse } from "@/types/common.types"
+import { ModalDetailStudents } from "./ModalAcademics/ModalDetailStudents"
 
 export function StudentList() {
   const [students, setStudents] = useState<Student[]>([])
@@ -153,13 +154,16 @@ export function StudentList() {
   // }
 
   const handleViewDetail = (studentId: number) => {
-    // TODO: Navigate to student detail page
-    toast.info(`Membuka detail siswa ID: ${studentId}`)
+    setSelectedStudentId(studentId)
+    setIsModalOpen(true)
   }
 
   const handlePageChange = (newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }))
   }
+
+const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
+const [isModalOpen, setIsModalOpen] = useState(false)
 
   if (error) {
     return (
@@ -218,17 +222,6 @@ export function StudentList() {
           </Select>
 
           <div className="flex gap-2">
-            <Button >
-            {/* // onClick={() => handleExport("excel")} variant="outline" disabled={exportLoading} */}
-              <Download className="h-4 w-4 mr-2" />
-              {exportLoading ? "Mengunduh..." : "Export Excel"}
-            </Button>
-
-            <Button >
-            {/* onClick={() => handleExport("pdf")} variant="outline" disabled={exportLoading} */}
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              {exportLoading ? "Mengunduh..." : "Export PDF"}
-            </Button>
 
             <div className="relative">
               <Input
@@ -237,10 +230,6 @@ export function StudentList() {
                 // onChange={handleImport}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
-              <Button variant="outline">
-                <Upload className="h-4 w-4 mr-2" />
-                Import
-              </Button>
             </div>
           </div>
         </div>
@@ -321,6 +310,18 @@ export function StudentList() {
             </TableBody>
           </Table>
         </div>
+        <ModalDetailStudents
+          studentId={selectedStudentId}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false)
+            setSelectedStudentId(null)
+          }}
+          onEdit={(student) => {
+            // Handle edit functionality
+            console.log("Edit student:", student)
+          }}
+        />
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
@@ -352,4 +353,5 @@ export function StudentList() {
       </CardContent>
     </Card>
   )
+  
 }

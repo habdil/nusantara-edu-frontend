@@ -156,23 +156,7 @@ const fetchKPIData = async () => {
               <SelectItem value="Triwulan 4">Triwulan 4</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={refreshing}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
+        </div> 
       </div>
 
       {/* Overall Performance Card */}

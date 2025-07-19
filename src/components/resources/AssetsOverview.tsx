@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search, Package, AlertTriangle, CheckCircle, Clock } from "lucide-react"
+import { Search, Package, AlertTriangle, CheckCircle, Clock, Eye, Edit, Plus } from "lucide-react"
 import { assetsApi } from "./api/assets-api"
 import type { Asset, ConditionStatus } from "@/types/resources"
+// Import Modal Component
+import { ModalDetailAsset } from "./ModalAssets/ModalDetailAsset"
 
 const getConditionBadge = (condition: ConditionStatus) => {
   const variants = {
@@ -32,11 +34,21 @@ const getConditionBadge = (condition: ConditionStatus) => {
 }
 
 export function AssetsOverview() {
+  // State untuk data aset
   const [assets, setAssets] = useState<Asset[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // State untuk filter dan search
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [conditionFilter, setConditionFilter] = useState<string>("all")
+
+  // 🔥 State untuk Modal Detail Asset
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+
+  // 🔥 State untuk Edit Mode (opsional untuk future development)
+  const [isEditMode, setIsEditMode] = useState(false)
 
   useEffect(() => {
     const fetchAssets = async () => {
@@ -53,6 +65,42 @@ export function AssetsOverview() {
     fetchAssets()
   }, [])
 
+  // 🔥 Handler untuk membuka modal detail
+  const handleViewDetail = (assetId: number) => {
+    setSelectedAssetId(assetId)
+    setIsDetailModalOpen(true)
+  }
+
+  // 🔥 Handler untuk menutup modal
+  const handleCloseModal = () => {
+    setIsDetailModalOpen(false)
+    setSelectedAssetId(null)
+    setIsEditMode(false)
+    
+    // 🔥 Refresh data setelah modal ditutup (untuk update terbaru)
+    // Ini penting jika ada perubahan data di modal
+    refetchAssets()
+  }
+
+  // 🔥 Handler untuk edit dari dalam modal
+  const handleEditFromModal = (asset: Asset) => {
+    console.log("Edit asset:", asset)
+    // Di sini bisa implement logika edit
+    // Misalnya buka modal edit terpisah atau switch ke mode edit
+    setIsEditMode(true)
+  }
+
+  // 🔥 Function untuk refresh data
+  const refetchAssets = async () => {
+    try {
+      const data = await assetsApi.getAssets()
+      setAssets(data)
+    } catch (error) {
+      console.error("Error refetching assets:", error)
+    }
+  }
+
+  // Filter logic tetap sama
   const filteredAssets = assets.filter((asset) => {
     const matchesSearch =
       asset.assetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,6 +111,7 @@ export function AssetsOverview() {
     return matchesSearch && matchesCategory && matchesCondition
   })
 
+  // Stats calculation tetap sama
   const assetStats = {
     total: assets.length,
     good: assets.filter((a) => a.condition === "good").length,
@@ -107,7 +156,7 @@ export function AssetsOverview() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      {/* Stats Cards - tidak berubah */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -157,11 +206,15 @@ export function AssetsOverview() {
       {/* Assets Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Aset Sekolah</CardTitle>
-          <CardDescription>Kelola dan pantau semua aset sekolah</CardDescription>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>Daftar Aset Sekolah</CardTitle>
+              <CardDescription>Kelola dan pantau semua aset sekolah</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          {/* Filters */}
+          {/* Filters - tidak berubah */}
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -199,7 +252,7 @@ export function AssetsOverview() {
             </Select>
           </div>
 
-          {/* Table */}
+          {/* Table dengan Action Buttons yang diupdate */}
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -210,7 +263,7 @@ export function AssetsOverview() {
                   <TableHead>Lokasi</TableHead>
                   <TableHead>Kondisi</TableHead>
                   <TableHead>Nilai (Rp)</TableHead>
-                  <TableHead>Aksi</TableHead>
+                  <TableHead className="text-center">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -231,17 +284,48 @@ export function AssetsOverview() {
                       }).format(asset.currentValue || asset.purchasePrice)}
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
-                        Detail
-                      </Button>
+                      {/* 🔥 Action Buttons yang diupdate */}
+                      <div className="flex items-center gap-2 justify-center">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleViewDetail(asset.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Detail
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
+                {/* 🔥 Handle empty state */}
+                {filteredAssets.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <Package className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">
+                          {searchTerm || categoryFilter !== "all" || conditionFilter !== "all"
+                            ? "Tidak ada aset yang sesuai dengan filter"
+                            : "Belum ada data aset"}
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+
+      {/* 🔥 Modal Detail Asset */}
+      <ModalDetailAsset
+        assetId={selectedAssetId}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }

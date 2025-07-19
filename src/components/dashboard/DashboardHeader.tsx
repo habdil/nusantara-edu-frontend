@@ -25,7 +25,8 @@ const schoolInfo = {
   academicYear: "2024/2025",
 };
 
-export function DashboardHeader() {
+export function 
+DashboardHeader() {
   return (
     <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
       {/* Left side - Welcome & School Info */}
@@ -51,36 +52,6 @@ export function DashboardHeader() {
 
       {/* Right side - Actions */}
       <div className="flex items-center space-x-3">
-        {/* Notifications */}
-        <Button variant="outline" size="sm" className="relative">
-          <Bell className="h-4 w-4" />
-          <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs bg-red-500">
-            7
-          </Badge>
-        </Button>
-
-        {/* Filter Period */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Periode
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Hari Ini</DropdownMenuItem>
-            <DropdownMenuItem>Minggu Ini</DropdownMenuItem>
-            <DropdownMenuItem>Bulan Ini</DropdownMenuItem>
-            <DropdownMenuItem>Semester Ini</DropdownMenuItem>
-            <DropdownMenuItem>Tahun Ajaran</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Export Report */}
-        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
       </div>
     </div>
   );

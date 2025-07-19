@@ -4,25 +4,26 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Eye, Edit, FileText, Star, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { Eye, Star, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { useRouter } from "next/navigation"
 import type { TeacherEvaluation } from "./api/teacher-evaluation-api"
 
 interface TeacherEvaluationTableProps {
   evaluations: TeacherEvaluation[]
   isLoading?: boolean
-  onViewDetails?: (evaluation: TeacherEvaluation) => void
-  onEdit?: (evaluation: TeacherEvaluation) => void
-  onGenerateReport?: (evaluation: TeacherEvaluation) => void
 }
 
 export function TeacherEvaluationTable({
   evaluations,
   isLoading,
-  onViewDetails,
-  onEdit,
-  onGenerateReport,
 }: TeacherEvaluationTableProps) {
+  const router = useRouter()
+
+  // Handler untuk navigasi ke halaman detail
+  const handleViewDetails = (evaluation: TeacherEvaluation) => {
+    router.push(`/dashboard/teacher-evaluation/${evaluation.id}`)
+  }
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       draft: { label: "Draft", variant: "secondary" as const },
@@ -97,7 +98,7 @@ export function TeacherEvaluationTable({
                 <TableHead>Kehadiran</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tanggal Evaluasi</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
+                <TableHead className="w-[100px]">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,7 +110,7 @@ export function TeacherEvaluationTable({
                 </TableRow>
               ) : (
                 evaluations.map((evaluation) => (
-                  <TableRow key={evaluation.id}>
+                  <TableRow key={evaluation.id} className="hover:bg-muted/50 cursor-pointer">
                     <TableCell>
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
@@ -173,27 +174,15 @@ export function TeacherEvaluationTable({
                       <div className="text-sm">{new Date(evaluation.evaluationDate).toLocaleDateString("id-ID")}</div>
                     </TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onViewDetails?.(evaluation)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Lihat Detail
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit?.(evaluation)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Evaluasi
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onGenerateReport?.(evaluation)}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Generate Laporan
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewDetails(evaluation)}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        Detail
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

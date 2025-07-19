@@ -116,9 +116,6 @@ export function TeacherEvaluationDashboard() {
       <TeacherEvaluationTable
         evaluations={evaluations}
         isLoading={isLoading}
-        onViewDetails={handleViewDetails}
-        onEdit={handleEdit}
-        onGenerateReport={handleGenerateReport}
       />
     </div>
   )

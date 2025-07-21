@@ -1,0 +1,240 @@
+Directory Structure for: E:\SEMESTER 4\EXPO-SEMESTER 4\microservice\frontend-nusantara-edu
+Scanned on: 2025-07-21 23:11:35
+==================================================
+
+📁 public/
+    📁 image/
+        📄 hero-section.png (957.6 KB)
+        📄 tempalte-facilities.png (2.7 MB)
+    📄 file.svg (391.0 B)
+    📄 globe.svg (1.0 KB)
+    📄 logo.svg (62.4 KB)
+    📄 next.svg (1.3 KB)
+    📄 vercel.svg (128.0 B)
+    📄 window.svg (385.0 B)
+📁 src/
+    📁 app/
+        📁 dashboard/
+            📁 academic/
+                📄 page.tsx (157.0 B)
+            📁 kpi/
+                📄 page.tsx (393.0 B)
+            📁 reports/
+                📄 page.tsx (407.0 B)
+            📁 resources/
+                📄 page.tsx (6.5 KB)
+            📁 settings/
+                📄 page.tsx (178.0 B)
+            📁 teacher-evaluation/
+                📁 [id]/
+                    📄 page.tsx (28.5 KB)
+                📄 page.tsx (265.0 B)
+            📄 layout.tsx (494.0 B)
+            📄 page.tsx (2.3 KB)
+        📄 favicon.ico (25.3 KB)
+        📄 globals.css (4.8 KB)
+        📄 layout.tsx (989.0 B)
+        📄 page.tsx (434.0 B)
+    📁 components/
+        📁 academics/
+            📁 api/
+                📄 academic-api.ts (8.6 KB)
+                📄 attendance-analysis-api.ts (1.5 KB)
+                📄 grade-analysis-api.ts (2.5 KB)
+            📁 ModalAcademics/
+                📄 ModalDetailStudents.tsx (23.9 KB)
+            📄 AcademicDashboard.tsx (6.8 KB)
+            📄 AcademicStats.tsx (2.4 KB)
+            📄 AttendanceOverview.tsx (7.5 KB)
+            📄 GradeAnalysis.tsx (6.8 KB)
+            📄 StudentList.tsx (13.8 KB)
+            📄 SubjectPerformance.tsx (6.5 KB)
+        📁 auth/
+            📁 components/
+                📄 LoginForm.tsx (7.4 KB)
+                📄 RegisterForm.tsx (16.3 KB)
+            📁 hooks/
+                📄 useAuthForm.ts (1.6 KB)
+            📁 types/
+                📄 auth.types.ts (391.0 B)
+            📁 utils/
+                📄 validation.ts (1.9 KB)
+            📄 Authentication.tsx (11.8 KB)
+        📁 dashboard/
+            📁 ModalAIRecommendations/
+                📄 ModalDetailRecommendations.tsx (0.0 B)
+            📄 AcademicPerformance.tsx (14.3 KB)
+            📄 AIRecomendations.tsx (20.9 KB)
+            📄 AttendanceTrend.tsx (12.4 KB)
+            📄 DashboardHeader.tsx (1.7 KB)
+            📄 EarlyWarnings.tsx.tsx (16.8 KB)
+            📄 FinancialOverview.tsx (18.1 KB)
+            📄 KPICards.tsx (8.0 KB)
+            📄 QuickActions.tsx (6.8 KB)
+            📄 RecentActivites.tsx (9.0 KB)
+        📁 kpi/
+            📁 api/
+                📄 kpi-api.ts (9.5 KB)
+            📄 index.ts (404.0 B)
+            📄 KPIChart.tsx (9.5 KB)
+            📄 KPIComparison.tsx (14.0 KB)
+            📄 KPIOverview.tsx (7.9 KB)
+            📄 KPIStats.tsx (4.4 KB)
+            📄 KPITargets.tsx (21.9 KB)
+        📁 landingPage/
+            📄 CTASection.tsx (11.1 KB)
+            📄 FeaturesHighlight.tsx (3.2 KB)
+            📄 Footer.tsx (10.8 KB)
+            📄 HeroSection.tsx (7.6 KB)
+            📄 KeyBenefits.tsx (2.4 KB)
+            📄 Navigation.tsx (2.1 KB)
+            📄 ProblemStatement.tsx (2.0 KB)
+            📄 SolutionOverview.tsx (1.9 KB)
+            📄 StatsSection.tsx (8.5 KB)
+            📄 TestimonialSection.tsx (2.9 KB)
+        📁 managements/
+            📁 assets/
+                📄 AssetHeader.tsx (1.4 KB)
+                📄 AssetStats.tsx (2.0 KB)
+                📄 AssetTable.tsx (8.1 KB)
+            📁 facilities/
+                📄 FacilityHeader.tsx (1.5 KB)
+                📄 FacilityStats.tsx (2.0 KB)
+                📄 FacilityTable.tsx (9.7 KB)
+            📁 facility-usage/
+                📄 FacilityUsageHeader.tsx (1.5 KB)
+                📄 FacilityUsageStats.tsx (2.0 KB)
+                📄 FacilityUsageTable.tsx (10.6 KB)
+            📁 finances/
+                📄 BudgetAlerts.tsx (9.0 KB)
+                📄 BudgetCategoryCards.tsx (7.5 KB)
+                📄 BudgetOverview.tsx (4.5 KB)
+                📄 FinanceHeader.tsx (3.2 KB)
+                📄 FinancialCharts.tsx (10.2 KB)
+                📄 RecentTransactions.tsx (8.4 KB)
+            📁 maintenance/
+                📄 MaintenanceHeader.tsx (1.4 KB)
+                📄 MaintenanceStats.tsx (2.0 KB)
+                📄 MaintenanceTable.tsx (9.9 KB)
+            📁 transactions/
+                📄 TransactionHeader.tsx (1.5 KB)
+                📄 TransactionStats.tsx (2.0 KB)
+                📄 TransactionTable.tsx (7.9 KB)
+        📁 profile/
+            📁 api/
+                📄 profile-api.ts (6.1 KB)
+            📄 ProfileModal.tsx (18.1 KB)
+        📁 reports/
+            📁 api/
+                📄 reports-api.ts (11.8 KB)
+            📄 index.ts (408.0 B)
+            📄 ReportGenerator.tsx (19.4 KB)
+            📄 ReportsList.tsx (12.1 KB)
+            📄 ReportsOverview.tsx (8.3 KB)
+            📄 ReportTemplates.tsx (14.6 KB)
+        📁 resources/
+            📁 api/
+                📄 assets-api.ts (8.0 KB)
+                📄 budget-api.ts (9.8 KB)
+                📄 facilities-api.ts (10.6 KB)
+            📁 ModalAssets/
+                📄 ModalDetailAsset.tsx (14.2 KB)
+            📄 AssetsOverview.tsx (13.1 KB)
+            📄 BudgetOverview.tsx (10.5 KB)
+            📄 FacilitiesOverview.tsx (10.6 KB)
+        📁 shared/
+            📄 Sidebar.tsx (16.4 KB)
+        📁 teacher-evaluation/
+            📁 api/
+                📄 hooks.ts (10.4 KB)
+                📄 teacher-evaluation-api.ts (15.9 KB)
+                📄 teacher-evaluation-client.ts (7.9 KB)
+            📁 ModalDetailTeacher/
+                📄 ModalDetailTeacher.tsx (30.2 KB)
+            📄 EvaluationFilters.tsx (5.9 KB)
+            📄 EvaluationHeader.tsx (1.3 KB)
+            📄 EvaluationStats.tsx (5.6 KB)
+            📄 TeacherEvaluationDashboard.tsx (3.3 KB)
+            📄 TeacherEvaluationTable.tsx (7.8 KB)
+        📁 ui/
+            📄 alert.tsx (1.6 KB)
+            📄 avatar.tsx (1.1 KB)
+            📄 badge.tsx (1.6 KB)
+            📄 breadcrumb.tsx (2.3 KB)
+            📄 button.tsx (2.1 KB)
+            📄 card.tsx (1.9 KB)
+            📄 checkbox.tsx (1.2 KB)
+            📄 collapsible.tsx (800.0 B)
+            📄 dialog.tsx (3.9 KB)
+            📄 dropdown-menu.tsx (8.1 KB)
+            📄 input.tsx (967.0 B)
+            📄 label.tsx (611.0 B)
+            📄 pagination.tsx (2.6 KB)
+            📄 progress.tsx (740.0 B)
+            📄 radio-group.tsx (1.4 KB)
+            📄 scroll-area.tsx (1.6 KB)
+            📄 select.tsx (6.1 KB)
+            📄 separator.tsx (699.0 B)
+            📄 sheet.tsx (4.0 KB)
+            📄 sidebar.tsx (21.1 KB)
+            📄 skeleton.tsx (278.0 B)
+            📄 sonner.tsx (3.3 KB)
+            📄 table.tsx (2.4 KB)
+            📄 tabs.tsx (1.9 KB)
+            📄 textarea.tsx (759.0 B)
+            📄 tooltip.tsx (1.8 KB)
+    📁 config/
+        📄 api.config.ts (2.6 KB)
+    📁 hooks/
+        📁 api/
+            📄 useAuth.ts (4.2 KB)
+        📄 use-mobile.ts (565.0 B)
+    📁 lib/
+        📄 utils.ts (166.0 B)
+    📁 middleware/
+        📄 AuthContext.tsx (11.7 KB)
+        📄 RouteGuard.tsx (5.9 KB)
+    📁 services/
+        📁 api/
+            📄 auth.ts (10.7 KB)
+            📄 client.ts (4.5 KB)
+            📄 error-handler.ts (3.2 KB)
+            📄 index.ts (580.0 B)
+            📄 interceptors.ts (2.7 KB)
+            📄 retry-manager.ts (1.9 KB)
+            📄 types.ts (798.0 B)
+            📄 utils.ts (2.3 KB)
+        📄 api-client.ts (16.1 KB)
+    📁 types/
+        📁 academic/
+            📄 index.ts (3.9 KB)
+            📄 record.types.ts (1004.0 B)
+            📄 student.types.ts (608.0 B)
+            📄 subject.types.ts (542.0 B)
+            📄 teacher.types.ts (253.0 B)
+        📁 kpi/
+            📄 index.ts (4.0 KB)
+        📁 reports/
+            📄 index.ts (5.8 KB)
+        📁 resources/
+            📄 index.ts (1.7 KB)
+        📁 teacher-evaluation/
+            📄 development-program.types.ts (4.7 KB)
+            📄 evaluation.types.ts (3.9 KB)
+            📄 index.ts (4.3 KB)
+        📄 auth.types.ts (7.7 KB)
+        📄 common.types.ts (322.0 B)
+    📄 middleware.ts (6.0 KB)
+📄 .env (46.0 B)
+📄 .env.local (0.0 B)
+📄 .gitignore (480.0 B)
+📄 .hintrc (88.0 B)
+📄 components.json (430.0 B)
+📄 file_structure.py (3.6 KB)
+📄 next-env.d.ts (211.0 B)
+📄 next.config.ts (133.0 B)
+📄 package-lock.json (121.7 KB)
+📄 package.json (1.3 KB)
+📄 postcss.config.mjs (81.0 B)
+📄 README.md (1.5 KB)
+📄 tsconfig.json (602.0 B)

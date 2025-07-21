@@ -507,7 +507,7 @@ export function AIRecommendations() {
               </p>
             </div>
             
-            <ScrollArea className="h-[40rem] pr-3">
+            <ScrollArea className="h-[37rem] pr-3">
               <div className="space-y-3">
                 {recommendations.map((rec) => {
                   const statusInfo = statusConfig[rec.implementationStatus as keyof typeof statusConfig] || statusConfig.pending;

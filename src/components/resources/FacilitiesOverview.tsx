@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, Building, Users, MapPin, AlertTriangle, CheckCircle } from "lucide-react"
 import { facilitiesApi } from "./api/facilities-api"
+import { ModalDetailFacilities } from "./ModalFacilities/ModalDetail"
 import type { Facility, ConditionStatus } from "@/types/resources"
 import Image from "next/image"
 
@@ -39,6 +40,10 @@ export function FacilitiesOverview() {
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
   const [conditionFilter, setConditionFilter] = useState<string>("all")
+  
+  // Modal Detail State
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   useEffect(() => {
     const fetchFacilities = async () => {
@@ -73,6 +78,18 @@ export function FacilitiesOverview() {
   }
 
   const types = [...new Set(facilities.map((facility) => facility.facilityType))]
+
+  // Handle show detail
+  const handleShowDetail = (facility: Facility) => {
+    setSelectedFacility(facility)
+    setShowDetailModal(true)
+  }
+
+  // Handle close modal
+  const handleCloseModal = () => {
+    setShowDetailModal(false)
+    setSelectedFacility(null)
+  }
 
   if (loading) {
     return (
@@ -209,12 +226,17 @@ export function FacilitiesOverview() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredFacilities.map((facility) => (
           <Card key={facility.id} className="overflow-hidden">
-            <div className="aspect-video relative">
+            <div className="aspect-video relative bg-muted">
               <Image
-                src={facility.facilityPhoto || "/placeholder.svg?height=200&width=300&query=facility"}
+                src={facility.facilityPhoto || "/image/facility.png"}
                 alt={facility.facilityName}
                 fill
                 className="object-cover"
+                onError={(e) => {
+                  console.log("Image failed to load:", facility.facilityPhoto)
+                  const target = e.target as HTMLImageElement
+                  target.src = "/image/tempalte-facilities.png"
+                }}
               />
             </div>
             <CardHeader>
@@ -239,23 +261,45 @@ export function FacilitiesOverview() {
                 {facility.location && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4" />
-                    <span>{facility.location}</span>
+                    <span className="truncate">{facility.location}</span>
                   </div>
                 )}
-                {facility.notes && <p className="text-sm text-muted-foreground mt-2">{facility.notes}</p>}
+                {facility.notes && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">{facility.notes}</p>
+                )}
               </div>
-              <div className="flex gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                  Detail
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                  Edit
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full bg-transparent"
+                onClick={() => handleShowDetail(facility)}
+              >
+                Detail
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Empty State */}
+      {filteredFacilities.length === 0 && !loading && (
+        <Card>
+          <CardContent className="text-center py-12">
+            <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Tidak ada fasilitas ditemukan</h3>
+            <p className="text-muted-foreground mb-4">
+              Coba ubah filter pencarian atau tambah fasilitas baru
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Modal Detail */}
+      <ModalDetailFacilities
+        facility={selectedFacility}
+        isOpen={showDetailModal}
+        onClose={handleCloseModal}
+      />
     </div>
   )
 }
